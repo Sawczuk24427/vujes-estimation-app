@@ -1,0 +1,24 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+    "dev": "webpack --config webpack.config.cjs",
+    "watch": "webpack --watch --config webpack.config.cjs",
+    "prod": "webpack --mode production --config webpack.config.cjs"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.0.0",
+        "concurrently": "^9.0.1",
+        "css-loader": "^7.1.4",
+        "laravel-mix": "^6.0.49",
+        "mdi": "^2.2.43",
+        "tailwindcss": "^4.0.0",
+        "vue": "^3.5.35",
+        "vue-loader": "^17.4.2",
+        "vue-style-loader": "^4.1.3",
+        "vuetify": "^4.1.0",
+        "webpack": "^5.107.2",
+        "webpack-cli": "^4.10.0"
+    }
+}
