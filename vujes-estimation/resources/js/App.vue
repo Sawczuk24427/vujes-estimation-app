@@ -18,13 +18,66 @@
 
         </v-container>
 
-        <v-container v-else>
-            <h2>Estimations Dashboard</h2>
-            <p>Logged in as <strong>{{ selectedUser.name }}</strong></p>
+        <template v-else>
+          <v-navigation-drawer permament app>
+            <v-list-item 
+            title="Estimation App"
+            :subtitle="`User: ${selectedUser.name}`"
+            class="py-4"></v-list-item>
+            <v-divider></v-divider>
 
-            <v-btn color="error" class="mb-5" @click="logout()"> Change User</v-btn>
+            <v-list density="compact" nav>
+              <v-list-item
+              prepend-icon="mdi-calculator"
+              title="Estimations"
+              value="estimations"
+              @click="currentView = 'estimations'"
+              :active="currentView==='estimations'">
+              </v-list-item>
 
-        <v-card class="pa-5 mb-5" variant="outlined" id="client-form">
+              <v-list-item
+              prepend-icon="mdi-briefcase"
+              title="Projects"
+              value="projects"
+              @click="currentView = 'projects'"
+              :active="currentView==='projects'">
+              </v-list-item>
+
+              <v-list-item
+              prepend-icon="mdi-account-group"
+              title="Clients"
+              value="clients"
+              @click="currentView = 'clients'"
+              :active="currentView==='clients'">
+              </v-list-item>
+
+            </v-list>
+
+            <template v-slot:append>
+              <div class="pa-4">
+                <v-btn block color="error" variant="outlined" @click="logout()">Change User</v-btn>
+              </div>
+            </template>
+            </v-navigation-drawer>
+
+            <v-main class="bg-grey-lighten-4">
+              <v-container class="pa-6">
+                <div v-if="currentView==='estimations'">
+                  <h2 class="text-h4 mb-4">Estimations</h2>
+                  <v-card class="pa-5 text-center" variant="outlined">
+                  <p>Here will be the heart of our application!</p>
+                </v-card>
+                </div>
+
+                <div v-if="currentView === 'projects'">
+                <h2 class="text-h4 mb-4">Projects</h2>
+                <v-card class="pa-5 text-center" variant="outlined">
+                  <p>Projects management coming soon...</p>
+                </v-card>
+              </div>
+
+              <div v-if="currentView === 'clients'">
+                <v-card class="pa-5 mb-5" variant="outlined" id="client-form">
         <v-card-title class="px-0">
           {{ isEditing ? 'Edit Client' : 'Add New Client' }}
         </v-card-title>
@@ -76,7 +129,12 @@
 
 
         </v-card>
+        </div>
+
         </v-container>
+        </v-main>
+
+      </template>
     </v-app>   
 </template>
  
@@ -94,7 +152,8 @@
                 },
                 clients: [],
                 isEditing: false,
-                editClientId: null
+                editClientId: null,
+                currentView: 'clients'
             }
         },
         mounted(){
