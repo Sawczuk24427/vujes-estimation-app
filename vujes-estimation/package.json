@@ -3,9 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-    "dev": "webpack --config webpack.config.cjs",
-    "watch": "webpack --watch --config webpack.config.cjs",
-    "prod": "webpack --mode production --config webpack.config.cjs"
+        "dev": "webpack --config webpack.config.cjs",
+        "watch": "webpack --watch --config webpack.config.cjs",
+        "prod": "webpack --mode production --config webpack.config.cjs"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
@@ -20,5 +20,8 @@
         "vuetify": "^4.1.0",
         "webpack": "^5.107.2",
         "webpack-cli": "^4.10.0"
+    },
+    "dependencies": {
+        "@mdi/font": "^7.4.47"
     }
 }
