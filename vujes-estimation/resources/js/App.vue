@@ -64,7 +64,7 @@
               <v-container class="pa-6">
                 <div v-if="currentView==='estimations'">
                   <h2 class="text-h4 mb-4">Estimations</h2>
-                  <v-card class="pa-5 mb-5" variant="outlined" id="estimaton-form">
+                  <v-card class="pa-5 mb-5" variant="outlined" id="estimation-form">
                     <v-card-title class="px-0">{{ isEditingEstimation ? "Edit Estimation" : "Add New Estimation" }}
                     </v-card-title>
                     <v-row>
@@ -101,7 +101,7 @@
                           <template v-slot:append>
                             <v-btn 
                               color="primary" variant="tonal" size="small" 
-                              @click="openProjectDialogForEstimation()"
+                              @click="openProjectDialog()"
                               :disabled="!newEstimation.client_id"
                               height="40"
                             >
@@ -296,7 +296,7 @@
         <v-btn color="success" class="mt-5" @click="saveProject()">
           {{ this.isEditingProject ? 'Update Project' : 'Save Project' }}
         </v-btn>
-        <v-btn v-if="this.isEditingProject" color="dark-grey" variant="text" class="ml-2" @click="cancelEditProject()">
+        <v-btn v-if="this.isEditingProject" color="dark-grey" variant="text" class="ml-2 mt-5" @click="cancelEditProject()">
           Cancel
         </v-btn>
         </div>
@@ -579,20 +579,26 @@
               };
               
               const url = this.isEditingClient ? `/api/clients/${this.editClientId}` : '/api/clients';
-              const httpMethod = this.isEditingClient ? 'PUT' : 'POST';
+              let finalPayload = {...payload};
+              if(this.isEditingClient){
+                finalPayload._method = 'PUT';
+              }
 
               fetch(url, {
-                method: httpMethod,
+                method: 'POST',
                 headers: { 
                   'Content-Type': 'application/json', 
-                  'Accept': 'application/json' 
+                  'Accept': 'application/json',
+                  'X-HTTP-Method-Override': this.isEditingClient ? 'PUT' : 'POST' 
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(finalPayload)
               })
               .then(async response => {
                 if (response.ok) {
                   this.cancelEditClient();
                   this.fetchClients();
+                  this.fetchProjects();
+                  this.fetchEstimations();
                 } else {
                     const errorData = await response.json();
                   console.error(errorData)
@@ -622,14 +628,20 @@
             deleteClient(id){
               if(confirm("Are you sure you want to delete this client?")){
                 fetch(`/api/clients/${id}`, {
-                  method: 'DELETE',
+                  method: 'POST', 
                   headers: {
-                    'Accept': 'application/json'
-                  }
+                    'Content-Type': 'application/json',
+                    'X-HTTP-Method-Override': 'DELETE' 
+                  },
+                  body: JSON.stringify({
+                    _method: 'DELETE'
+                  })
                 })
                 .then(response =>{
                   if(response.ok){
                     this.fetchClients();
+                    this.fetchProjects();
+                    this.fetchEstimations();
                   }
                   else{
                     alert("ERROR: Could not delete the client");
@@ -646,20 +658,26 @@
               };
               
               const url = this.isEditingProject ? `/api/projects/${this.editProjectId}` : '/api/projects';
-              const httpMethod = this.isEditingProject ? 'PUT' : 'POST';
+              let finalPayload = {...payload};
+              if(this.isEditingProject){
+                finalPayload._method = 'PUT';
+              }
 
               fetch(url, {
-                method: httpMethod,
+                method: 'POST',
                 headers: { 
                   'Content-Type': 'application/json', 
-                  'Accept': 'application/json' 
+                  'Accept': 'application/json',
+                  'X-HTTP-Method-Override': this.isEditingProject ? 'PUT' : 'POST'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(finalPayload)
               })
               .then(async response => {
                 if (response.ok) {
                   this.cancelEditProject();
+                  this.fetchClients();
                   this.fetchProjects();
+                  this.fetchEstimations();
                 } else {
                     const errorData = await response.json();
                   console.error(errorData)
@@ -689,14 +707,20 @@
             deleteProject(id){
               if(confirm("Are you sure you want to delete this project?")){
                 fetch(`/api/projects/${id}`, {
-                  method: 'DELETE',
+                  method: 'POST', 
                   headers: {
-                    'Accept': 'application/json'
-                  }
+                    'Content-Type': 'application/json',
+                    'X-HTTP-Method-Override': 'DELETE' 
+                  },
+                  body: JSON.stringify({
+                    _method: 'DELETE'
+                  })
                 })
                 .then(response =>{
                   if(response.ok){
+                    this.fetchClients();
                     this.fetchProjects();
+                    this.fetchEstimations();
                   }
                   else{
                     alert("ERROR: Could not delete the project");
@@ -720,15 +744,19 @@
               }
 
               const url = this.isEditingEstimation ? `/api/estimations/${this.editEstimationId}` : '/api/estimations';
-              const httpMethod = this.isEditingEstimation ? 'PUT' : 'POST';
+              let finalPayload = {...payload};
+              if(this.isEditingEstimation){
+                finalPayload._method = 'PUT';
+              }
 
               fetch(url, {
-                method: httpMethod,
+                method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Accept': 'application/json'
+                  'Accept': 'application/json',
+                  'X-HTTP-Method-Override': this.isEditingEstimation ? 'PUT' : 'POST'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(finalPayload)
 
               })
               .then(async response => {
@@ -768,9 +796,15 @@
           deleteEstimation(id){
             if(confirm("Are you sure you want to delete this estimation?")){
               fetch(`/api/estimations/${id}`, {
-                method: 'DELETE',
-                headers: {'Accept': 'application/json'}
-              })
+                  method: 'POST', 
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-HTTP-Method-Override': 'DELETE' 
+                  },
+                  body: JSON.stringify({
+                    _method: 'DELETE'
+                  })
+                })
               .then(response => {
                 if(response.ok){
                   this.fetchEstimations();
