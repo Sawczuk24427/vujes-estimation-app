@@ -32,7 +32,7 @@ class EstimationController extends Controller
             'project_id'=>'required|exists:projects,id'
         ]);
 
-        if($calidated.['type'] === 'hourly'){
+        if($validated['type'] === 'hourly'){
             $validated['price'] = $validated['hours'] * $validated['hourly_rate'];
         }
 
