@@ -19,7 +19,7 @@
         </v-container>
 
         <template v-else>
-          <v-navigation-drawer permanent app>
+          <v-navigation-drawer v-model="drawer" app>
             <v-list-item 
             title="Estimation App"
             :subtitle="`User: ${selectedUser.name}`"
@@ -59,6 +59,17 @@
               </div>
             </template>
             </v-navigation-drawer>
+
+            <v-btn
+            v-if="!drawer"
+            class="d-md-none"
+            color="primary"
+            icon
+            elevation="8"
+            style="position: fixed; top:20px; left:20px; z-index:9999; "
+            @click="drawer = !drawer">
+            <v-icon>mdi-menu</v-icon>
+            </v-btn>
 
             <v-main class="bg-grey-lighten-4">
               <v-container class="pa-6">
@@ -470,6 +481,7 @@
                   date_to:''
 
                 },
+                drawer: null,
             }
         },
 
