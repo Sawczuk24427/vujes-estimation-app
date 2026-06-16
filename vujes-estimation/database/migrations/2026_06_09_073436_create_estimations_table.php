@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->decimal('price',10,2);
+            $table->decimal('price', 10, 2);
             $table->timestamps();
         });
     }

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('estimations', function (Blueprint $table) {
-            $table->enum('type', ['fixed', 'hourly'] )->default('fixed')->after('title');
+            $table->enum('type', ['fixed', 'hourly'])->default('fixed')->after('title');
             $table->integer('hours')->nullable()->after('type');
             $table->decimal('hourly-rate', 8, 2)->nullable()->after('hours');
         });
@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('estimations', function (Blueprint $table) {
-           $table->dropColumn(['type', 'hours', 'hourly_rate']);
+            $table->dropColumn(['type', 'hours', 'hourly_rate']);
         });
     }
 };
