@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use App\Models\Estimation;
 use App\Models\Project;
 use Illuminate\Validation\Rule;
@@ -53,12 +54,12 @@ class EstimationController extends Controller
             'type'=>'required|in:fixed,hourly',
             'price' => 'required_if:type,fixed|nullable|numeric|min:0',
             'hours' => 'required_if:type,hourly|nullable|integer|min:1',
-            'hourly_rate' => 'required_if:type,hourly|nullable|numeric|min:0',
+            'hourly-rate' => 'required_if:type,hourly|nullable|numeric|min:0',
             'project_id'=>'required|exists:projects,id'
         ]);
 
         if ($validated['type'] === 'hourly') {
-            $validated['price'] = $validated['hours'] * $validated['hourly_rate'];
+            $validated['price'] = $validated['hours'] * $validated['hourly-rate'];
         }
 
         $estimation->update($validated);
@@ -68,8 +69,9 @@ class EstimationController extends Controller
 
     public function destroy($id){
             $estimation = Estimation::findOrFail($id);
+            Gate::authorize('delete', $estimation);
             $estimation->delete();
-            return response()->json(['message'=>'Estimation deleted']);
+            return response()->json(['message'=>'Estimation deleted'], 200);
             
         }
 }
