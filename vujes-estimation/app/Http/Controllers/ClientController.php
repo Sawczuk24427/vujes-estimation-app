@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Client;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
@@ -14,11 +14,11 @@ class ClientController extends Controller
             'user_id' => 'required|exists:users,id',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
-            
+
             'name' => [
                 'required',
                 'string',
-                Rule::unique('clients')->where('user_id', $request->user_id)
+                Rule::unique('clients')->where('user_id', $request->user_id),
             ],
         ]);
 
@@ -31,27 +31,32 @@ class ClientController extends Controller
     {
         $user_id = $request->query('user_id');
         $clients = Client::where('user_id', $user_id)->get();
-        return response() -> json($clients);
+
+        return response()->json($clients);
     }
 
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
         $client = Client::findOrFail($id);
         $validated = $request->validate([
-            'name'=> [
+            'name' => [
                 'required',
                 'string',
-                Rule::unique('clients')->where('user_id', $client->user_id)->ignore($client->id)
+                Rule::unique('clients')->where('user_id', $client->user_id)->ignore($client->id),
             ],
-            'email'=>'nullable|email',
-            'phone'=>'nullable|string'
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
         ]);
         $client->update($validated);
-        return response()->json(['message'=>'Client Updated']);
+
+        return response()->json(['message' => 'Client Updated']);
     }
 
-    public function destroy($id){
+    public function destroy($id)
+    {
         $client = Client::findOrFail($id);
         $client->delete();
+
         return response()->json(['message' => 'Client Deleted']);
     }
 }

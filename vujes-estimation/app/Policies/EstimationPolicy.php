@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Estimation;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class EstimationPolicy
 {
@@ -29,7 +28,7 @@ class EstimationPolicy
      */
     public function create(User $user): bool
     {
-        return $estimation->project->client->user_id === $user->id;
+        return true;
     }
 
     /**

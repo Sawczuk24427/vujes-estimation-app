@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Project;
 use App\Models\Client;
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +20,7 @@ class ProjectFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'name' => fake()->sentence(3)
+            'name' => fake()->sentence(3),
         ];
     }
 }

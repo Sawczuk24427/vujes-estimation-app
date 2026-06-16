@@ -19,10 +19,10 @@ class ClientFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'=>User::factory(),
+            'user_id' => User::factory(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->phoneNumber()
+            'phone' => fake()->phoneNumber(),
         ];
     }
 }

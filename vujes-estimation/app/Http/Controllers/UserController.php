@@ -31,12 +31,12 @@ class UserController extends Controller
         $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
-            'password' => bcrypt($validatedData['password'])
+            'password' => bcrypt($validatedData['password']),
         ]);
 
         return response()->json([
             'message' => 'User added successfully!',
-            'user' => $user
+            'user' => $user,
         ], 201);
     }
 
@@ -56,14 +56,14 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email' . $user->id,
+            'email' => 'required|string|email|max:255|unique:users,email'.$user->id,
             'password' => 'nullable|string|min:8',
         ]);
 
         $user->name = $validatedData['name'];
         $user->email = $validatedData['email'];
 
-        if (!empty($validatedData['password'])) {
+        if (! empty($validatedData['password'])) {
             $user->password = bcrypt($validatedData['password']);
         }
 
@@ -71,7 +71,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User data updated!',
-            'user' => $user
+            'user' => $user,
         ]);
     }
 

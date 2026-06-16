@@ -24,24 +24,21 @@ class EstimationFactory extends Factory
         $hourly_rate = null;
         $price = 0;
 
-        if('type' === 'hourly'){
-            $hours = fake()->numberBetween(10,100);
+        if ('type' === 'hourly') {
+            $hours = fake()->numberBetween(10, 100);
             $hourly_rate = fake()->numberBetween(31, 250);
             $price = $hours * $hourly_rate;
         } else {
             $price = fake()->numberBetween(1000, 100000);
         }
 
-
-
-
         return [
-            'project_id'=>Project::factory(),
-            'title'=>fake()->sentence(3),
-            'type'=> $type,
+            'project_id' => Project::factory(),
+            'title' => fake()->sentence(3),
+            'type' => $type,
             'hours' => $hours,
-            'hourly-rate'=> $hourly_rate,
-            'price'=> $price
+            'hourly-rate' => $hourly_rate,
+            'price' => $price,
 
         ];
     }

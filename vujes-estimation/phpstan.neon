@@ -1,0 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    # Poziomy są od 0 (najluźniejszy) do 9 (ekstremalnie rygorystyczny)
+    level: 6
