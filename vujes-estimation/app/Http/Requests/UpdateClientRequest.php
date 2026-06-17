@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateClientRequest extends FormRequest
 {
@@ -26,7 +27,7 @@ class UpdateClientRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                Rule::unique('clients')->where('user_id', $client->user_id)->ignore($client->id),
+                Rule::unique('clients')->where('user_id', $this->user_id)->ignore($this->id),
             ],
             'email' => ['nullable', 'email'],
             'phone' => ['nullable', 'string'],

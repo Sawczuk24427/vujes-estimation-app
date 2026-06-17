@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProjectRequest extends FormRequest
 {
@@ -26,7 +27,7 @@ class StoreProjectRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                Rule::unique('projects')->where('client_id', $request->client_id)],
+                Rule::unique('projects', 'name')->where('client_id', $this->client_id)],
             'description' => ['nullable', 'string'],
             'client_id' => ['required', 'exists:clients,id']
         ];

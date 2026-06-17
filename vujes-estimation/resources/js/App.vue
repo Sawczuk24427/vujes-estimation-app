@@ -543,27 +543,39 @@
             },
 
             fetchClients(){
-              fetch(`/api/clients?user_id=${this.selectedUser.id}`)
+              fetch('/api/clients', {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json'}
+              })
               .then(response => response.json())
               .then(data =>{
-                this.clients = data;
+                this.clients = Array.isArray(data) ? data : [];
               });
             },
 
             fetchProjects(){
-              fetch(`/api/projects?user_id=${this.selectedUser.id}`)
+              fetch('/api/projects', {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json'}
+              })
               .then(response=> response.json())
               .then(data => {
-                this.projects=data;
+                this.projects = Array.isArray(data) ? data : [];
               })
             },
 
             fetchEstimations(){
-              fetch(`/api/estimations?user_id=${this.selectedUser.id}`)
+              fetch('/api/estimations', {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json'}
+              })
               .then(response=> response.json())
               .then(data => {
                 if(Array.isArray(data)){
-                this.estimations = data;
+                this.estimations = Array.isArray(data) ? data : [];
                 } else{
                   console.error("Blad 500: ", data);
                 }
@@ -571,10 +583,24 @@
             },
 
             loginAs(user){
-                this.selectedUser = user;
-                this.fetchClients();
-                this.fetchProjects();
-                this.fetchEstimations();
+                fetch('/api/login', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                  },
+                  body: JSON.stringify({ id: user.id })
+                })
+                .then(response => {
+                  if(response.ok){
+                    this.selectedUser = user;
+                    this.fetchClients();
+                    this.fetchProjects();
+                    this.fetchEstimations();
+                  } else {
+                    alert("blad logowania na backendzie");
+                  }
+                })
             },
 
             logout(){
@@ -587,7 +613,6 @@
                 name: this.newClient.name,
                 email: this.newClient.email,
                 phone: this.newClient.phone,
-                user_id: this.selectedUser.id
               };
               
               const url = this.isEditingClient ? `/api/clients/${this.editClientId}` : '/api/clients';
@@ -598,6 +623,7 @@
 
               fetch(url, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 
                   'Content-Type': 'application/json', 
                   'Accept': 'application/json',
@@ -640,7 +666,8 @@
             deleteClient(id){
               if(confirm("Are you sure you want to delete this client?")){
                 fetch(`/api/clients/${id}`, {
-                  method: 'POST', 
+                  method: 'POST',
+                  credentials: 'include', 
                   headers: {
                     'Content-Type': 'application/json',
                     'X-HTTP-Method-Override': 'DELETE' 
@@ -677,6 +704,7 @@
 
               fetch(url, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 
                   'Content-Type': 'application/json', 
                   'Accept': 'application/json',
@@ -719,7 +747,8 @@
             deleteProject(id){
               if(confirm("Are you sure you want to delete this project?")){
                 fetch(`/api/projects/${id}`, {
-                  method: 'POST', 
+                  method: 'POST',
+                  credentials: 'include', 
                   headers: {
                     'Content-Type': 'application/json',
                     'X-HTTP-Method-Override': 'DELETE' 
@@ -763,6 +792,7 @@
 
               fetch(url, {
                 method: 'POST',
+                credentials: 'include', 
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
@@ -809,6 +839,7 @@
             if(confirm("Are you sure you want to delete this estimation?")){
               fetch(`/api/estimations/${id}`, {
                   method: 'POST', 
+                  credentials: 'include', 
                   headers: {
                     'Content-Type': 'application/json',
                     'X-HTTP-Method-Override': 'DELETE' 

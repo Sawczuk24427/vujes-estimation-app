@@ -6,29 +6,30 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Http\Resources\ProjectResource;
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 
 class ProjectController extends Controller
 {
     public function store(StoreProjectRequest $request)
     {
-        $validated = $request->validated();
+        $project = Project::create($request->validated());
 
-        $project = Project::create($validated);
-
-        return response()->json(['message' => 'Project saved', 'project'=>$project], 201);
+        return new ProjectResource($project);
 
     }
 
     public function index(Request $request)
     {
-        $user_id = $request->query('user_id');
+        $user_id = auth()->id();
         $projects = Project::whereHas('client', function ($query) use ($user_id) {
             $query->where('user_id', $user_id);
         })
             ->with('client')
             ->get();
 
-        return response()->json($projects, 201);
+        return ProjectResource::collection($projects);
 
     }
 
@@ -36,11 +37,9 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
         Gate::authorize('update', $project);
-        $validated = $request->validated();
+        $project->update($request->validated());
 
-        $project->update($validated);
-
-        return response()->json(['message' => 'Project Updated', 'project'=>$project], 201);
+        return new ProjectResource($project);
     }
 
     public function destroy($id)
@@ -49,6 +48,6 @@ class ProjectController extends Controller
         Gate::authorize('delete', $project);
         $project->delete();
 
-        return response()->json(['message' => 'Project Deleted'], 201);
+        return response()->json(['message' => 'Project Deleted'], 200);
     }
 }

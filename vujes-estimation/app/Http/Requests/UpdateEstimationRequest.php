@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEstimationRequest extends FormRequest
 {
@@ -28,8 +29,8 @@ class UpdateEstimationRequest extends FormRequest
                 'required',
                 'string',
                 Rule::unique('estimations')
-                    ->where('project_id', $request->project_id)
-                    ->ignore($estimation->id),
+                    ->where('project_id', $this->project_id)
+                    ->ignore($this->id),
             ],
             'type' => ['required', 'in:fixed,hourly'],
             'price' => ['required_if:type,fixed', 'nullable', 'numeric', 'min:0'],

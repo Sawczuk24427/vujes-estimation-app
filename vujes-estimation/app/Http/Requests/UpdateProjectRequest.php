@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProjectRequest extends FormRequest
 {
@@ -27,8 +28,8 @@ class UpdateProjectRequest extends FormRequest
                 'required',
                 'string',
                 Rule::unique('projects')
-                    ->where('client_id', $request->client_id)
-                    ->ignore($project->id)],
+                    ->where('client_id', $this->client_id)
+                    ->ignore($this->id)],
             'description' => ['nullable', 'string'],
             'client_id' => ['required', 'exists:clients,id']
         ];

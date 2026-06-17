@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreClientRequest extends FormRequest
 {
@@ -23,14 +24,13 @@ class StoreClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'exists:users,id'],
             'email' => ['nullable', 'email'],
             'phone' => ['nullable', 'string'],
 
             'name' => [
                 'required',
                 'string',
-                Rule::unique('clients')->where('user_id', $request->user_id),
+                Rule::unique('clients', 'name')->where('user_id', auth()->id())
             ]
         ];
     }

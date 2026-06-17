@@ -6,34 +6,37 @@ use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Http\Resources\ClientResource;
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Requests\UpdateClientRequest;
 
 class ClientController extends Controller
 {
     public function store(StoreClientRequest $request)
-    {
-        $validated = $request->validated();
+{
+    $validated = $request->validated();
 
-        $client = Client::create($validated);
+    $validated['user_id'] = auth()->id();
 
-        return response()->json(['message' => 'Client saved successfully!', 'client' => $client], 201);
-    }
+    $client = Client::create($validated);
+
+    return new ClientResource($client);
+}
 
     public function index(Request $request)
     {
-        $user_id = $request->query('user_id');
-        $clients = Client::where('user_id', $user_id)->get();
+        $clients = Client::where('user_id', auth()->id())->get();
 
-        return response()->json($clients, 201);
+        return ClientResource::collection($clients);
     }
 
     public function update(UpdateClientRequest $request, $id)
     {
         $client = Client::findOrFail($id);
         Gate::authorize('update', $client);
-        $validated = $request->validated();
-        $client->update($validated);
+        $client->update($request->validated());
 
-        return response()->json(['message' => 'Client Updated', 'client'=>$client], 201);
+        return new ClientResource($client);
     }
 
     public function destroy($id)
@@ -42,6 +45,6 @@ class ClientController extends Controller
         Gate::authorize('delete', $client);
         $client->delete();
 
-        return response()->json(['message' => 'Client Deleted'], 201);
+        return response()->json(['message' => 'Client Deleted'], 200);
     }
 }

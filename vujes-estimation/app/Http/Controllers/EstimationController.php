@@ -6,17 +6,20 @@ use App\Models\Estimation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Http\Resources\EstimationResource;
+use App\Http\Requests\StoreEstimationRequest;
+use App\Http\Requests\UpdateEstimationRequest;
 
 class EstimationController extends Controller
 {
     public function index(Request $request)
     {
-        $userId = $request->query('user_id');
+        $userId = auth() -> id();
         $estimations = Estimation::whereHas('project.client', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with('project.client')->get();
 
-        return response()->json($estimations, 201);
+        return EstimationResource::collection($estimations);
     }
 
     public function store(StoreEstimationRequest $request)
@@ -29,7 +32,7 @@ class EstimationController extends Controller
 
         $estimation = Estimation::create($validated);
 
-        return response()->json(['message' => 'Estimation saved', 'estimation'=> $estimation], 201);
+        return new EstimationResource($estimation);
     }
 
     public function update(UpdateEstimationRequest $request, $id)
@@ -44,7 +47,7 @@ class EstimationController extends Controller
 
         $estimation->update($validated);
 
-        return response()->json(['message' => 'Estimation updated', 'estimation'=>$estimation], 201);
+        return new EstimationResource($estimation);
 
     }
 
@@ -54,7 +57,7 @@ class EstimationController extends Controller
         Gate::authorize('delete', $estimation);
         $estimation->delete();
 
-        return response()->json(['message' => 'Estimation deleted'], 201);
+        return response()->json(['message' => 'Estimation deleted'], 200);
 
     }
 }
