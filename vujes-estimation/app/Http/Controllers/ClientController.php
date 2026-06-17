@@ -4,23 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('clients')->where('user_id', $request->user_id),
-            ],
-        ]);
+        $validated = $request->validated();
 
         $client = Client::create($validated);
 
@@ -32,31 +23,25 @@ class ClientController extends Controller
         $user_id = $request->query('user_id');
         $clients = Client::where('user_id', $user_id)->get();
 
-        return response()->json($clients);
+        return response()->json($clients, 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateClientRequest $request, $id)
     {
         $client = Client::findOrFail($id);
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('clients')->where('user_id', $client->user_id)->ignore($client->id),
-            ],
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-        ]);
+        Gate::authorize('update', $client);
+        $validated = $request->validated();
         $client->update($validated);
 
-        return response()->json(['message' => 'Client Updated']);
+        return response()->json(['message' => 'Client Updated', 'client'=>$client], 201);
     }
 
     public function destroy($id)
     {
         $client = Client::findOrFail($id);
+        Gate::authorize('delete', $client);
         $client->delete();
 
-        return response()->json(['message' => 'Client Deleted']);
+        return response()->json(['message' => 'Client Deleted'], 201);
     }
 }
