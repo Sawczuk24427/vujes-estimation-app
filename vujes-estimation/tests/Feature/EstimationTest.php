@@ -23,7 +23,7 @@ it('can create an hourly estimation and calculate total price', function () {
 
     $response = $this->postJson('/api/estimations', $payload);
 
-    $response->assertStatus(200);
+    $response->assertStatus(201);
 
     $this->assertDatabaseHas('estimations', [
         'project_id' => $project->id,

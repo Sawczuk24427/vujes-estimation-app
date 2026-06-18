@@ -2,61 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Requests\UpdateClientRequest;
+use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class ClientController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
+        $validated = $request->validated();
 
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('clients')->where('user_id', $request->user_id),
-            ],
-        ]);
+        $validated['user_id'] = auth()->id();
 
         $client = Client::create($validated);
 
-        return response()->json(['message' => 'Client saved successfully!', 'client' => $client], 201);
+        return new ClientResource($client);
     }
 
     public function index(Request $request)
     {
-        $user_id = $request->query('user_id');
-        $clients = Client::where('user_id', $user_id)->get();
+        $clients = Client::where('user_id', auth()->id())->get();
 
-        return response()->json($clients);
+        return ClientResource::collection($clients);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateClientRequest $request, $id)
     {
         $client = Client::findOrFail($id);
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('clients')->where('user_id', $client->user_id)->ignore($client->id),
-            ],
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-        ]);
-        $client->update($validated);
+        Gate::authorize('update', $client);
+        $client->update($request->validated());
 
-        return response()->json(['message' => 'Client Updated']);
+        return new ClientResource($client);
     }
 
     public function destroy($id)
     {
         $client = Client::findOrFail($id);
+        Gate::authorize('delete', $client);
         $client->delete();
 
-        return response()->json(['message' => 'Client Deleted']);
+        return response()->json(['message' => 'Client Deleted'], 200);
     }
 }

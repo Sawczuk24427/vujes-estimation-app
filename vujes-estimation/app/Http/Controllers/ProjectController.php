@@ -2,65 +2,51 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('projects')->where('client_id', $request->client_id)],
-            'description' => 'nullable|string',
-            'client_id' => 'required|exists:clients,id']);
+        $project = Project::create($request->validated());
 
-        Project::create($validated);
-
-        return response()->json(['message' => 'Project saved']);
+        return new ProjectResource($project);
 
     }
 
     public function index(Request $request)
     {
-        $user_id = $request->query('user_id');
+        $user_id = auth()->id();
         $projects = Project::whereHas('client', function ($query) use ($user_id) {
             $query->where('user_id', $user_id);
         })
             ->with('client')
             ->get();
 
-        return response()->json($projects);
+        return ProjectResource::collection($projects);
 
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateProjectRequest $request, $id)
     {
         $project = Project::findOrFail($id);
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('projects')
-                    ->where('client_id', $request->client_id)
-                    ->ignore($project->id)],
-            'description' => 'nullable|string',
-            'client_id' => 'required|exists:clients,id',
-        ]);
+        Gate::authorize('update', $project);
+        $project->update($request->validated());
 
-        $project->update($validated);
-
-        return response()->json(['message' => 'Project Updated']);
+        return new ProjectResource($project);
     }
 
     public function destroy($id)
     {
         $project = Project::findOrFail($id);
+        Gate::authorize('delete', $project);
         $project->delete();
 
-        return response()->json(['message' => 'Project Deleted']);
+        return response()->json(['message' => 'Project Deleted'], 200);
     }
 }

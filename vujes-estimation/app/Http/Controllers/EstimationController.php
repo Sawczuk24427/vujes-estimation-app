@@ -2,64 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreEstimationRequest;
+use App\Http\Requests\UpdateEstimationRequest;
+use App\Http\Resources\EstimationResource;
 use App\Models\Estimation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 
 class EstimationController extends Controller
 {
     public function index(Request $request)
     {
-        $userId = $request->query('user_id');
+        $userId = auth()->id();
         $estimations = Estimation::whereHas('project.client', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with('project.client')->get();
 
-        return response()->json($estimations);
+        return EstimationResource::collection($estimations);
     }
 
-    public function store(Request $request)
+    public function store(StoreEstimationRequest $request)
     {
-        $validated = $request->validate([
-            'title' => [
-                'required',
-                'string',
-                Rule::unique('estimations')->where('project_id', $request->project_id),
-            ],
-            'type' => 'required|in:fixed,hourly',
-            'price' => 'required_if:type,fixed|nullable|numeric|min:0',
-            'hours' => 'required_if:type,hourly|nullable|integer|min:1',
-            'hourly_rate' => 'required_if:type,hourly|nullable|numeric|min:0',
-            'project_id' => 'required|exists:projects,id',
-        ]);
+        $validated = $request->validated();
 
         if ($validated['type'] === 'hourly') {
             $validated['price'] = $validated['hours'] * $validated['hourly_rate'];
         }
 
-        Estimation::create($validated);
+        $estimation = Estimation::create($validated);
 
-        return response()->json(['message' => 'Estimation saved']);
+        return new EstimationResource($estimation);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateEstimationRequest $request, $id)
     {
         $estimation = Estimation::findOrFail($id);
-        $validated = $request->validate([
-            'title' => [
-                'required',
-                'string',
-                Rule::unique('estimations')
-                    ->where('project_id', $request->project_id)
-                    ->ignore($estimation->id),
-            ],
-            'type' => 'required|in:fixed,hourly',
-            'price' => 'required_if:type,fixed|nullable|numeric|min:0',
-            'hours' => 'required_if:type,hourly|nullable|integer|min:1',
-            'hourly-rate' => 'required_if:type,hourly|nullable|numeric|min:0',
-            'project_id' => 'required|exists:projects,id',
-        ]);
+        Gate::authorize('update', $estimation);
+        $validated = $request->validated();
 
         if ($validated['type'] === 'hourly') {
             $validated['price'] = $validated['hours'] * $validated['hourly-rate'];
@@ -67,7 +46,7 @@ class EstimationController extends Controller
 
         $estimation->update($validated);
 
-        return response()->json(['message' => 'Estimation updated']);
+        return new EstimationResource($estimation);
 
     }
 
