@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Client 
+ */
 class ClientResource extends JsonResource
 {
     /**
@@ -20,7 +23,7 @@ class ClientResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'joined_at' => $this->created_at->format('Y-m-d'),
-            'projects' => ProjectResource::collection($this->whenLoaded('projects'))
+            'projects' => ProjectResource::collection($this->whenLoaded('projects')),
         ];
     }
 }

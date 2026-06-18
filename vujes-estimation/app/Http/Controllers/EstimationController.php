@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreEstimationRequest;
+use App\Http\Requests\UpdateEstimationRequest;
+use App\Http\Resources\EstimationResource;
 use App\Models\Estimation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
-use App\Http\Resources\EstimationResource;
-use App\Http\Requests\StoreEstimationRequest;
-use App\Http\Requests\UpdateEstimationRequest;
 
 class EstimationController extends Controller
 {
     public function index(Request $request)
     {
-        $userId = auth() -> id();
+        $userId = auth()->id();
         $estimations = Estimation::whereHas('project.client', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with('project.client')->get();

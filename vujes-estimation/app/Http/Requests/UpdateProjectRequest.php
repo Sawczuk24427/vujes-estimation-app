@@ -31,7 +31,7 @@ class UpdateProjectRequest extends FormRequest
                     ->where('client_id', $this->client_id)
                     ->ignore($this->id)],
             'description' => ['nullable', 'string'],
-            'client_id' => ['required', 'exists:clients,id']
+            'client_id' => ['required', 'exists:clients,id'],
         ];
     }
 }

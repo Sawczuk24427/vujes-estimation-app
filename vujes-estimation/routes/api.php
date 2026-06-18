@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\EstimationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,7 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::apiResource('users', UserController::class)->only([ 'store', 'update']);
+    Route::apiResource('users', UserController::class)->only(['store', 'update']);
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('estimations', EstimationController::class);

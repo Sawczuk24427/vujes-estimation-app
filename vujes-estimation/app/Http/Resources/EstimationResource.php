@@ -15,13 +15,13 @@ class EstimationResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'=>$this->id,
-            'title'=>$this->title,
-            'type'=>$this->type,
-            'hours'=>$this->hours,
-            'hourly-rate'=>$this->hourly_rate,
-            'price'=>$this->price,
-            'project' => new ProjectResource($this->whenLoaded('project'))
+            'id' => $this->id,
+            'title' => $this->title,
+            'type' => $this->type,
+            'hours' => $this->hours,
+            'hourly-rate' => $this->hourly_rate,
+            'price' => $this->price,
+            'project' => new ProjectResource($this->whenLoaded('project')),
         ];
     }
 }

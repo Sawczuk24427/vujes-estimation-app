@@ -25,7 +25,7 @@ class UpdateEstimationRequest extends FormRequest
     {
         return [
 
-        'title' => [
+            'title' => [
                 'required',
                 'string',
                 Rule::unique('estimations')
@@ -36,9 +36,8 @@ class UpdateEstimationRequest extends FormRequest
             'price' => ['required_if:type,fixed', 'nullable', 'numeric', 'min:0'],
             'hours' => ['required_if:type,hourly', 'nullable', 'integer', 'min:1'],
             'hourly-rate' => ['required_if:type,hourly', 'nullable', 'numeric', 'min:0'],
-            'project_id' => ['required', 'exists:projects,id']
-        
-            
+            'project_id' => ['required', 'exists:projects,id'],
+
         ];
     }
 }

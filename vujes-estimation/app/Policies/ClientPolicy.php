@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Client;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ClientPolicy
 {
@@ -37,7 +36,7 @@ class ClientPolicy
      */
     public function update(User $user, Client $client): bool
     {
-        return $client -> user_id === $user->id;
+        return $client->user_id === $user->id;
     }
 
     /**
@@ -45,7 +44,7 @@ class ClientPolicy
      */
     public function delete(User $user, Client $client): bool
     {
-        return $client -> user_id === $user->id;
+        return $client->user_id === $user->id;
     }
 
     /**

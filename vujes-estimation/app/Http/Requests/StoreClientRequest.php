@@ -30,8 +30,8 @@ class StoreClientRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
-                Rule::unique('clients', 'name')->where('user_id', auth()->id())
-            ]
+                Rule::unique('clients', 'name')->where('user_id', auth()->id()),
+            ],
         ];
     }
 }

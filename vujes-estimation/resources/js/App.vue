@@ -1,439 +1,99 @@
 <template>
     <v-app>
-        <v-container v-if="selectedUser==null">
-            <h2 class="mb-4 text-h5">Select your profile</h2>
-
-            <v-list lines="two" border>
-                <v-list-item
-                v-for="user in users"
-                :key="user.id"
-                :title="user.name"
-                :subtitle="user.email"
-                @click="loginAs(user)"
-                >
-
-                </v-list-item>
-            </v-list>
-
-
-        </v-container>
-
-        <template v-else>
-          <v-navigation-drawer v-model="drawer" app>
-            <v-list-item 
-            title="Estimation App"
-            :subtitle="`User: ${selectedUser.name}`"
-            class="py-4"></v-list-item>
-            <v-divider></v-divider>
-
-            <v-list density="compact" nav>
-              <v-list-item
-              prepend-icon="mdi-calculator"
-              title="Estimations"
-              value="estimations"
-              @click="currentView = 'estimations'"
-              :active="currentView==='estimations'">
-              </v-list-item>
-
-              <v-list-item
-              prepend-icon="mdi-briefcase"
-              title="Projects"
-              value="projects"
-              @click="currentView = 'projects'"
-              :active="currentView==='projects'">
-              </v-list-item>
-
-              <v-list-item
-              prepend-icon="mdi-account-group"
-              title="Clients"
-              value="clients"
-              @click="currentView = 'clients'"
-              :active="currentView==='clients'">
-              </v-list-item>
-
-            </v-list>
-
-            <template v-slot:append>
-              <div class="pa-4">
-                <v-btn block color="error" variant="outlined" @click="logout()">Change User</v-btn>
-              </div>
-            </template>
-            </v-navigation-drawer>
-
-            <v-btn
-            v-if="!drawer"
-            class="d-md-none"
-            color="primary"
-            icon
-            elevation="8"
-            style="position: fixed; top:20px; left:20px; z-index:9999; "
-            @click="drawer = !drawer">
-            <v-icon>mdi-menu</v-icon>
-            </v-btn>
-
+        <LoginProfileSelector
+        v-if="selectedUser == null"
+        :users="users"
+        @login="loginAs"
+        />
+        
+          <template v-else>
+          
+            <SidebarMenu 
+            :user="selectedUser"
+            :currentView="currentView"
+            @change-view="currentView = $event"
+            @logout="logout"
+            />
             <v-main class="bg-grey-lighten-4">
               <v-container class="pa-6">
-                <div v-if="currentView==='estimations'">
-                  <h2 class="text-h4 mb-4">Estimations</h2>
-                  <v-card class="pa-5 mb-5" variant="outlined" id="estimation-form">
-                    <v-card-title class="px-0">{{ isEditingEstimation ? "Edit Estimation" : "Add New Estimation" }}
-                    </v-card-title>
-                    <v-row>
-                      <v-col cols="12" md="6">
-                        <v-select
-                          v-model="newEstimation.client_id"
-                          :items="clients"
-                          item-title="name"
-                          item-value="id"
-                          label="1. Select Client *"
-                          density="compact"
-                          hide-details
-                          @update:modelValue="newEstimation.project_id = null" 
-                        >
-                          <template v-slot:append>
-                            <v-btn color="primary" variant="tonal" size="small" @click="openClientDialog()" height="40">
-                              + New
-                            </v-btn>
-                          </template>
-                        </v-select>
-                      </v-col>
-
-                      <v-col cols="12" md="6">
-                        <v-select
-                          v-model="newEstimation.project_id"
-                          :items="filteredProjectsForEstimation" 
-                          item-title="name"
-                          item-value="id"
-                          label="2. Select Project *"
-                          density="compact"
-                          hide-details
-                          :disabled="!newEstimation.client_id"
-                        >
-                          <template v-slot:append>
-                            <v-btn 
-                              color="primary" variant="tonal" size="small" 
-                              @click="openProjectDialog()"
-                              :disabled="!newEstimation.client_id"
-                              height="40"
-                            >
-                              + New
-                            </v-btn>
-                          </template>
-                        </v-select>
-                      </v-col>
-
-                      <v-col cols="12" md="6">
-                        <v-text-field 
-                          v-model="newEstimation.title" 
-                          label="Estimation Title *" 
-                          density="compact" 
-                          hide-details
-                          :disabled="!newEstimation.project_id"
-                        ></v-text-field>
-                      </v-col>
-
-                      <v-col cols="12" md="6">
-                        <v-select
-                          v-model="newEstimation.type"
-                          :items="[{title: 'Fixed Price', value: 'fixed'}, {title: 'Hourly Rate', value: 'hourly'}]"
-                          label="Pricing Type *"
-                          density="compact"
-                          hide-details
-                          :disabled="!newEstimation.project_id"
-                        ></v-select>
-                      </v-col>
-
-                      <v-col cols="12" md="6" v-if="newEstimation.type === 'fixed'">
-                        <v-text-field 
-                          v-model="newEstimation.price" 
-                          label="Total Price (PLN) *" 
-                          type="number" 
-                          density="compact" 
-                          hide-details
-                          :disabled="!newEstimation.project_id"
-                        ></v-text-field>
-                      </v-col>
-
-                      <v-col cols="12" md="6" v-if="newEstimation.type === 'hourly'">
-                        <v-text-field 
-                          v-model="newEstimation.hours" 
-                          label="Estimated Hours *" 
-                          type="number" 
-                          density="compact" 
-                          hide-details
-                          :disabled="!newEstimation.project_id"
-                        ></v-text-field>
-                      </v-col>
-                      
-                      <v-col cols="12" md="6" v-if="newEstimation.type === 'hourly'">
-                        <v-text-field 
-                          v-model="newEstimation.hourly_rate" 
-                          label="Hourly Rate (PLN) *" 
-                          type="number" 
-                          density="compact" 
-                          hide-details
-                          :disabled="!newEstimation.project_id"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-                    <div class="d-flex gap-2 mt-4">
-                      <v-btn color="success" @click="saveEstimation()">
-                        {{ isEditingEstimation ? "Update Estimation" : "Save Estimation" }}
-                      </v-btn>
-                      <v-btn v-if="isEditingEstimation" color="dark-grey" variant="text" class="ml-2" @click="cancelEditEstimation()">
-                        Cancel
-                      </v-btn>
-
-                    </div>
-                </v-card>
-
-                <v-card class="mt-5 pa-4 bg-grey-lighten-4" variant="flat">
-                    <v-row>
-                      <v-col cols="12" md="3">
-                        <v-select 
-                          v-model="filters.client_id" :items="clients" item-title="name" item-value="id" 
-                          label="Filter by Client" density="compact" hide-details clearable
-                          @update:modelValue="filters.project_id = null"
-                        ></v-select>
-                      </v-col>
-                      <v-col cols="12" md="3">
-                        <v-select 
-                          v-model="filters.project_id" :items="filteredProjectsForSearch" item-title="name" item-value="id" 
-                          label="Filter by Project" density="compact" hide-details clearable
-                        ></v-select>
-                      </v-col>
-                      <v-col cols="12" md="3">
-                        <v-text-field 
-                          v-model="filters.date_from" label="Date From" type="date" density="compact" hide-details clearable
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" md="3">
-                        <v-text-field 
-                          v-model="filters.date_to" label="Date To" type="date" density="compact" hide-details clearable
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-
-                    <v-divider class="my-4"></v-divider>
-                    
-                    <div class="d-flex justify-space-between align-center">
-                      <span class="text-subtitle-1 font-weight-medium text-grey-darken-1">
-                        Showing {{ processedEstimations.length }} estimation(s)
-                      </span>
-                      <span class="text-h5 font-weight-bold text-success">
-                        Total Value: {{ summaryTotalPrice.toLocaleString('pl-PL') }} PLN
-                      </span>
-                    </div>
-                  </v-card>
-
-                <v-card class="mt-5 pa-5" variant="outlined">
-                  <v-card-title class="px-0">Estimation List</v-card-title>
-                  <v-table>
-                      <thead>
-                        <tr>
-                          <th class="text-center font-weight-bold">Date</th>
-                          <th class="text-center font-weight-bold">Client Name</th> 
-                          <th class="text-center font-weight-bold">Project Name</th>
-                          <th class="text-center font-weight-bold">Estimation Title</th>
-                          <th class="text-center font-weight-bold">Price</th>
-                          <th class="text-center font-weight-bold">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="estimation in processedEstimations" :key="estimation.id">
-                          <td class="text-center">{{ formatDate(estimation.created_at) }}</td>
-                          <td class="text-center">{{ estimation.project?.client?.name }}</td>
-                          <td class="text-center">{{ estimation.project?.name }}</td>
-                          <td class="text-center">{{ estimation.title }}</td>
-                          <td class="text-center">
-                            <span v-if="estimation.type==='hourly'">
-                              <strong>{{ estimation.price }} PLN</strong> <br>
-                              <small class="text-grey">({{ estimation.hours }}h @ {{ estimation.hourly_rate }} PLN/h)</small>
-                            </span>
-                            <span v-else>
-                              <strong>{{ estimation.price }} PLN</strong> <br>
-                              <small class="text-grey">(Fixed Price)</small>
-                            </span>
-                            </td>
-                          <td class="text-center">
-                            <v-btn color="warning" size="small" @click="editEstimation(estimation)">Edit</v-btn>
-                            <v-btn color="error" size="small" class="ml-3" @click="deleteEstimation(estimation.id)">Delete</v-btn>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </v-table>
-                </v-card>
-
                 
-                </div>
+                <EstimationsView 
+                  v-if="currentView === 'estimations'"
+                  :estimations="processedEstimations"
+                  :clients="clients"
+                  :filtered-projects-for-estimation="filteredProjectsForEstimation"
+                  :filtered-projects-for-search="filteredProjectsForSearch"
+                  :estimation-form="newEstimation"
+                  :filters="filters"
+                  :is-editing="isEditingEstimation"
+                  :summary-total-price="summaryTotalPrice"
+                  @save="saveEstimation"
+                  @cancel="cancelEditEstimation"
+                  @edit="editEstimation"
+                  @delete="deleteEstimation"
+                  @open-client-dialog="openClientDialog"
+                  @open-project-dialog="openProjectDialog"
+                  />
 
-                <div v-if="currentView === 'projects'">
-                <h2 class="text-h4 mb-4">Projects</h2>
-                  <v-card class="pa-5 mb-5" variant="outlined" id="project-form">
-        <v-card-title class="px-0">
-          {{ this.isEditingProject ? 'Edit Project' : 'Add New Project' }}
-        </v-card-title>
-        
-        <v-row>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="newProject.name" label="Name" density="compact" hide-details></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="newProject.description" label="Description" type="text" density="compact" hide-details></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4" class="d-flex align-center">
-            <v-select
-            v-model="newProject.client_id"
-            :items="clients"
-            item-title="name"
-            item-value="id"
-            label="Select Client *"
-            density="compact"
-            hide-details
-            ></v-select>
+                <ProjectsView 
+                  v-if="currentView === 'projects'"
+                  :projects="projects"
+                  :clients="clients"
+                  :project-form="newProject"
+                  :is-editing="isEditingProject"
+                  @save="saveProject"
+                  @cancel="cancelEditProject"
+                  @edit="editProject"
+                  @delete="deleteProject"
+                  @open-client-dialog="openClientDialog"
+                />
 
-            <v-btn 
-            color="primary"
-            variant="tonal"
-            icon="mdi-plus"
-            size="small"
-            class="ml-2"
-            @click="openClientDialog()"
-            title="Add New Client"></v-btn>
-          </v-col>
-        </v-row>
-        
-        <div class="d-flex gap-2">
-        <v-btn color="success" class="mt-5" @click="saveProject()">
-          {{ this.isEditingProject ? 'Update Project' : 'Save Project' }}
-        </v-btn>
-        <v-btn v-if="this.isEditingProject" color="dark-grey" variant="text" class="ml-2 mt-5" @click="cancelEditProject()">
-          Cancel
-        </v-btn>
-        </div>
-        </v-card>
+                <ClientsView 
+                  v-if="currentView === 'clients'"
+                  :clients="clients"
+                  :client-form="newClient"
+                  :is-editing="isEditingClient"
+                  @save="saveClient"
+                  @cancel="cancelEditClient"
+                  @edit="editClient"
+                  @delete="deleteClient"
+                />
+        <QuickAddClientModal 
+        v-model:is-open="isClientDialogOpen" 
+        @save="handleQuickAddClient" 
+        />
 
-        <v-card class="mt-5 pa-5" variant="outlined">
-        <v-card-title class="px-0">Project List</v-card-title>
-        <v-table>
-          <thead>
-            <tr>
-              <th class="text-center font-weight-bold">Name</th>
-              <th class="text-center font-weight-bold">Description</th>
-              <th class="text-center font-weight-bold">temp</th>
-              <th class="text-center font-weight-bold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="project in projects" :key="project.id">
-              <td class="text-center">{{ project.name }}</td>
-              <td class="text-center">{{project.description}}</td>
-              <td class="text-center">{{ project.client?.name }}</td>
-              <td class="text-center"><v-btn color='warning' size='small' @click='editProject(project)'>Edit</v-btn>
-                <v-btn color="error" size="small" class="ml-3" @click="deleteProject(project.id)">Delete</v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-
-
-        </v-card>
-              </div>
-
-              <div v-if="currentView === 'clients'">
-                <h2 class="text-h4 mb-4">Clients</h2>
-                <v-card class="pa-5 mb-5" variant="outlined" id="client-form">
-        <v-card-title class="px-0">
-          {{ this.isEditingClient ? 'Edit Client' : 'Add New Client' }}
-        </v-card-title>
-        
-        <v-row>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="newClient.name" label="Name" density="compact"></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="newClient.email" label="Email" type="email" density="compact"></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="newClient.phone" label="Phone" density="compact"></v-text-field>
-          </v-col>
-        </v-row>
-        
-        <div class="d-flex gap-2">
-        <v-btn color="success" @click="saveClient()">
-          {{ this.isEditingClient ? 'Update Client' : 'Save Client' }}
-        </v-btn>
-        <v-btn v-if="this.isEditingClient" color="dark-grey" variant="text" class="ml-2" @click="cancelEditClient()">
-          Cancel
-        </v-btn>
-        </div>
-        </v-card>
-
-        <v-card class="mt-5 pa-5" variant="outlined">
-        <v-card-title class="px-0">Client List</v-card-title>
-        <v-table>
-          <thead>
-            <tr>
-              <th class="text-center font-weight-bold">Name</th>
-              <th class="text-center font-weight-bold">Email</th>
-              <th class="text-center font-weight-bold">Phone</th>
-              <th class="text-center font-weight-bold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="client in clients" :key="client.id">
-              <td class="text-center">{{ client.name }}</td>
-              <td class="text-center">{{client.email}}</td>
-              <td class="text-center">{{ client.phone }}</td>
-              <td class="text-center"><v-btn color='warning' size='small' @click='editClient(client)'>Edit</v-btn>
-                <v-btn color="error" size="small" class="ml-3" @click="deleteClient(client.id)">Delete</v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-
-
-        </v-card>
-        </div>
-        <v-dialog v-model="isClientDialogOpen" max-width="500px">
-                  <v-card>
-                    <v-card-title class="pa-4 text-h5">Quick Add Client</v-card-title>
-                    <v-card-text class="pt-0">
-                      <v-text-field v-model="newClient.name" label="Name *" density="compact" class="mb-2"></v-text-field>
-                      <v-text-field v-model="newClient.email" label="Email" type="email" density="compact" class="mb-2"></v-text-field>
-                      <v-text-field v-model="newClient.phone" label="Phone" density="compact" class="mb-2"></v-text-field>
-                    </v-card-text>
-                    <v-card-actions class="pa-4 pt-0">
-                      <v-spacer></v-spacer>
-                      <v-btn color="error" variant="text" @click="isClientDialogOpen=false">Cancel</v-btn>
-                      <v-btn color="success" variant="flat" @click="quickSaveClient()">Save Client</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-
-                <v-dialog v-model="isProjectDialogOpen" max-width="500px">
-                    <v-card>
-                      <v-card-title class="pa-4 text-h5">Quick Add Project</v-card-title>
-                      <v-card-text class="pt-0">
-                        <v-text-field v-model="newProject.name" label="Project Name *" density="compact" class="mb-3"></v-text-field>
-                        <v-text-field v-model="newProject.description" label="Description" density="compact" class="mb-3"></v-text-field>
-                      </v-card-text>
-                      <v-card-actions class="pa-4 pt-0">
-                        <v-spacer></v-spacer>
-                        <v-btn color="error" variant="text" @click="isProjectDialogOpen = false">Cancel</v-btn>
-                        <v-btn color="success" variant="flat" @click="quickSaveProject()">Save Project</v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-dialog>
+        <QuickAddProjectModal 
+          v-model:is-open="isProjectDialogOpen" 
+          @save="handleQuickAddProject" 
+        />
         </v-container>
         </v-main>
-
-      </template>
+        </template>
     </v-app>   
 </template>
  
 <script>
+  import api from './services/api';
+  import LoginProfileSelector from './components/LoginProfileSelector.vue';
+  import SidebarMenu from './components/SidebarMenu.vue';
+  import QuickAddClientModal from './components/QuickAddClientModal.vue';
+  import QuickAddProjectModal from './components/QuickAddProjectModal.vue';
+  import ClientsView from './views/ClientsView.vue';
+  import ProjectsView from './views/ProjectsView.vue';
+  import EstimationsView from './views/EstimationsView.vue';
+
     export default{
+        components: {
+          LoginProfileSelector,
+          SidebarMenu,
+          QuickAddClientModal,
+          QuickAddProjectModal,
+          ClientsView,
+          ProjectsView,
+          EstimationsView
+        },
+
         data(){
             return{
                 users: [],
@@ -481,7 +141,6 @@
                   date_to:''
 
                 },
-                drawer: null,
             }
         },
 
@@ -534,116 +193,81 @@
             this.fetchUsers();
         },
         methods: {
-            fetchUsers() {
-               fetch('/api/users')
-               .then(response => response.json())
-               .then(data => {
-                this.users = data;
-               }); 
-            },
-
-            fetchClients(){
-              fetch('/api/clients', {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Accept': 'application/json'}
-              })
-              .then(response => response.json())
-              .then(data =>{
-                this.clients = Array.isArray(data) ? data : [];
-              });
-            },
-
-            fetchProjects(){
-              fetch('/api/projects', {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Accept': 'application/json'}
-              })
-              .then(response=> response.json())
-              .then(data => {
-                this.projects = Array.isArray(data) ? data : [];
-              })
-            },
-
-            fetchEstimations(){
-              fetch('/api/estimations', {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Accept': 'application/json'}
-              })
-              .then(response=> response.json())
-              .then(data => {
-                if(Array.isArray(data)){
-                this.estimations = Array.isArray(data) ? data : [];
-                } else{
-                  console.error("Blad 500: ", data);
+            async fetchUsers() {
+               try {
+                    this.users = await api.getUsers();
+                } catch (error) {
+                    console.error("Błąd pobierania userów:", error);
                 }
-              })
             },
 
-            loginAs(user){
-                fetch('/api/login', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                  },
-                  body: JSON.stringify({ id: user.id })
-                })
-                .then(response => {
-                  if(response.ok){
+            async fetchClients() {
+                try {
+                    const data = await api.getClients();
+                    this.clients = Array.isArray(data) ? data : [];
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+
+            async fetchProjects() {
+                try {
+                    const data = await api.getProjects();
+                    this.projects = Array.isArray(data) ? data : [];
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+
+            async fetchEstimations() {
+                try {
+                    const data = await api.getEstimations();
+                    this.estimations = Array.isArray(data) ? data : [];
+                } catch (error) {
+                    console.error("Blad 500: ", error);
+                }
+            },
+
+            async loginAs(user) {
+                try {
+                    await api.login(user.id);
                     this.selectedUser = user;
                     this.fetchClients();
                     this.fetchProjects();
                     this.fetchEstimations();
-                  } else {
-                    alert("blad logowania na backendzie");
-                  }
-                })
-            },
-
-            logout(){
-                this.selectedUser = null;
-            },
-
-            
-            saveClient() {
-              const payload = {
-                name: this.newClient.name,
-                email: this.newClient.email,
-                phone: this.newClient.phone,
-              };
-              
-              const url = this.isEditingClient ? `/api/clients/${this.editClientId}` : '/api/clients';
-              let finalPayload = {...payload};
-              if(this.isEditingClient){
-                finalPayload._method = 'PUT';
-              }
-
-              fetch(url, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 
-                  'Content-Type': 'application/json', 
-                  'Accept': 'application/json',
-                  'X-HTTP-Method-Override': this.isEditingClient ? 'PUT' : 'POST' 
-                },
-                body: JSON.stringify(finalPayload)
-              })
-              .then(async response => {
-                if (response.ok) {
-                  this.cancelEditClient();
-                  this.fetchClients();
-                  this.fetchProjects();
-                  this.fetchEstimations();
-                } else {
-                    const errorData = await response.json();
-                  console.error(errorData)
-                  alert('Error: This client name might already exist for this user!');
+                } catch (error) {
+                    console.error("Szczegóły błędu logowania:", error);
                 }
-                });
-              },
+            },
+
+            async logout() {
+                try {
+                    await api.logout();
+                    this.selectedUser = null;
+                } catch (error) {
+                    console.error(error);
+                    this.selectedUser = null;
+                }
+            },
+            
+            async saveClient() {
+                const payload = {
+                    name: this.newClient.name,
+                    email: this.newClient.email,
+                    phone: this.newClient.phone,
+                };
+                
+                try {
+                    await api.saveClient(payload, this.isEditingClient ? this.editClientId : null);
+                    this.cancelEditClient();
+                    this.fetchClients();
+                    this.fetchProjects();
+                    this.fetchEstimations();
+                } catch (error) {
+                    console.error(error);
+                    alert('Error: This client name might already exist for this user!');
+                }
+            },
 
             editClient(client){
               this.isEditingClient = true;
@@ -653,7 +277,6 @@
                 email: client.email,
                 phone: client.phone
               };
-
               document.getElementById('client-form').scrollIntoView({ behavior: 'smooth' });             
             },
 
@@ -663,68 +286,37 @@
               this.newClient = {name: '', email: '', phone: ''}; 
             },
 
-            deleteClient(id){
-              if(confirm("Are you sure you want to delete this client?")){
-                fetch(`/api/clients/${id}`, {
-                  method: 'POST',
-                  credentials: 'include', 
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-HTTP-Method-Override': 'DELETE' 
-                  },
-                  body: JSON.stringify({
-                    _method: 'DELETE'
-                  })
-                })
-                .then(response =>{
-                  if(response.ok){
+            async deleteClient(id) {
+                if(confirm("Are you sure you want to delete this client?")) {
+                    try {
+                        await api.deleteClient(id);
+                        this.fetchClients();
+                        this.fetchProjects();
+                        this.fetchEstimations();
+                    } catch (error) {
+                        alert("ERROR: Could not delete the client");
+                    }
+                }
+            },
+
+            async saveProject() {
+                const payload = {
+                    name: this.newProject.name,
+                    description: this.newProject.description,
+                    client_id: this.newProject.client_id
+                };
+                
+                try {
+                    await api.saveProject(payload, this.isEditingProject ? this.editProjectId : null);
+                    this.cancelEditProject();
                     this.fetchClients();
                     this.fetchProjects();
                     this.fetchEstimations();
-                  }
-                  else{
-                    alert("ERROR: Could not delete the client");
-                  }
-                });
-              }
-            
-            },
-            saveProject() {
-              const payload = {
-                name: this.newProject.name,
-                description: this.newProject.description,
-                client_id: this.newProject.client_id
-              };
-              
-              const url = this.isEditingProject ? `/api/projects/${this.editProjectId}` : '/api/projects';
-              let finalPayload = {...payload};
-              if(this.isEditingProject){
-                finalPayload._method = 'PUT';
-              }
-
-              fetch(url, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 
-                  'Content-Type': 'application/json', 
-                  'Accept': 'application/json',
-                  'X-HTTP-Method-Override': this.isEditingProject ? 'PUT' : 'POST'
-                },
-                body: JSON.stringify(finalPayload)
-              })
-              .then(async response => {
-                if (response.ok) {
-                  this.cancelEditProject();
-                  this.fetchClients();
-                  this.fetchProjects();
-                  this.fetchEstimations();
-                } else {
-                    const errorData = await response.json();
-                  console.error(errorData)
-                  alert('Error: This project name might already exist for this client!');
+                } catch (error) {
+                    console.error(error);
+                    alert('Error: This project name might already exist for this client!');
                 }
-                });
-              },
+            },
 
             editProject(project){
               this.isEditingProject = true;
@@ -744,74 +336,42 @@
               this.newProject = {name: '', description: '', client_id: null}; 
             },
 
-            deleteProject(id){
-              if(confirm("Are you sure you want to delete this project?")){
-                fetch(`/api/projects/${id}`, {
-                  method: 'POST',
-                  credentials: 'include', 
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-HTTP-Method-Override': 'DELETE' 
-                  },
-                  body: JSON.stringify({
-                    _method: 'DELETE'
-                  })
-                })
-                .then(response =>{
-                  if(response.ok){
-                    this.fetchClients();
-                    this.fetchProjects();
-                    this.fetchEstimations();
-                  }
-                  else{
-                    alert("ERROR: Could not delete the project");
-                  }
-                });
-              }
+            async deleteProject(id) {
+                if(confirm("Are you sure you want to delete this project?")) {
+                    try {
+                        await api.deleteProject(id);
+                        this.fetchClients();
+                        this.fetchProjects();
+                        this.fetchEstimations();
+                    } catch (error) {
+                        alert("ERROR: Could not delete the project");
+                    }
+                }
             },
             
-            saveEstimation(){
-              const payload = {
-                project_id: this.newEstimation.project_id,
-                title: this.newEstimation.title,
-                type: this.newEstimation.type
-              };
+            async saveEstimation() {
+                const payload = {
+                    project_id: this.newEstimation.project_id,
+                    title: this.newEstimation.title,
+                    type: this.newEstimation.type
+                };
 
-              if(this.newEstimation.type==='fixed'){
-                payload.price = this.newEstimation.price;
-              } else{
-                payload.hours = this.newEstimation.hours;
-                payload.hourly_rate = this.newEstimation.hourly_rate;
-              }
-
-              const url = this.isEditingEstimation ? `/api/estimations/${this.editEstimationId}` : '/api/estimations';
-              let finalPayload = {...payload};
-              if(this.isEditingEstimation){
-                finalPayload._method = 'PUT';
-              }
-
-              fetch(url, {
-                method: 'POST',
-                credentials: 'include', 
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                  'X-HTTP-Method-Override': this.isEditingEstimation ? 'PUT' : 'POST'
-                },
-                body: JSON.stringify(finalPayload)
-
-              })
-              .then(async response => {
-                if (response.ok){
-                  this.cancelEditEstimation();
-                  this.fetchEstimations();
+                if (this.newEstimation.type === 'fixed') {
+                    payload.price = this.newEstimation.price;
                 } else {
-                  const errorData = await response.json();
-                  console.error(errorData);
-                  alert("ERROR: Check if fields are correct");
-              }
-            });
-          },
+                    payload.hours = this.newEstimation.hours;
+                    payload.hourly_rate = this.newEstimation.hourly_rate;
+                }
+
+                try {
+                    await api.saveEstimation(payload, this.isEditingEstimation ? this.editEstimationId : null);
+                    this.cancelEditEstimation();
+                    this.fetchEstimations();
+                } catch (error) {
+                    console.error(error);
+                    alert("ERROR: Check if fields are correct");
+                }
+            },
 
           editEstimation(estimation){
             this.isEditingEstimation = true;
@@ -835,28 +395,16 @@
             this.newEstimation ={client_id: null, project_id:null, title:'', type:'fixed', hours:null, hourly_rate:null,  price:''};
           },
 
-          deleteEstimation(id){
-            if(confirm("Are you sure you want to delete this estimation?")){
-              fetch(`/api/estimations/${id}`, {
-                  method: 'POST', 
-                  credentials: 'include', 
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-HTTP-Method-Override': 'DELETE' 
-                  },
-                  body: JSON.stringify({
-                    _method: 'DELETE'
-                  })
-                })
-              .then(response => {
-                if(response.ok){
-                  this.fetchEstimations();
-                } else {
-                  alert("ERROR: Could not delete estimation");
+          async deleteEstimation(id) {
+                if(confirm("Are you sure you want to delete this estimation?")) {
+                    try {
+                        await api.deleteEstimation(id);
+                        this.fetchEstimations();
+                    } catch (error) {
+                        alert("ERROR: Could not delete estimation");
+                    }
                 }
-              });
-            }
-          },
+            },
 
           quickSaveClient(){
             const savedName = this.newClient.name;
@@ -879,6 +427,7 @@
             this.newProject.client_id = this.newEstimation.client_id;
             this.isProjectDialogOpen = true;
           },
+
           openClientDialog() {
               this.newClient = { name: '', email: '', phone: '' };
               this.isClientDialogOpen = true;
@@ -896,23 +445,18 @@
             }, 500);
           },
 
-          formatDate(dateString){
-            if(!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleString('pl-PL', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            });
-          }
-            
+          handleQuickAddClient(payload){
+            this.newClient = payload;
+            this.quickSaveClient();
+          },
 
-        }
+          handleQuickAddProject(payload) {
+            this.newProject.name = payload.name;
+            this.newProject.description = payload.description;
+            this.quickSaveProject();
+          },
             
+        }          
       } 
 
 </script>
-
-<style>
-
-</style>

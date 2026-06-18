@@ -59,7 +59,7 @@ it('can delete own estimation', function () {
     $response = $this->deleteJson('/api/estimations/'.$estimation->id);
 
     // 5. Powinno przejść z sukcesem!
-    $response->assertStatus(201);
+    $response->assertStatus(200);
 });
 
 it('cannot delete an estimation belonging to another user', function () {

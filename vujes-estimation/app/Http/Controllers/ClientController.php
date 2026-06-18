@@ -2,26 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Requests\UpdateClientRequest;
+use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
-use App\Http\Resources\ClientResource;
-use App\Http\Requests\StoreClientRequest;
-use App\Http\Requests\UpdateClientRequest;
 
 class ClientController extends Controller
 {
     public function store(StoreClientRequest $request)
-{
-    $validated = $request->validated();
+    {
+        $validated = $request->validated();
 
-    $validated['user_id'] = auth()->id();
+        $validated['user_id'] = auth()->id();
 
-    $client = Client::create($validated);
+        $client = Client::create($validated);
 
-    return new ClientResource($client);
-}
+        return new ClientResource($client);
+    }
 
     public function index(Request $request)
     {
