@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Estimation 
+ */
 class EstimationResource extends JsonResource
 {
     /**
@@ -22,6 +25,8 @@ class EstimationResource extends JsonResource
             'hourly-rate' => $this->hourly_rate,
             'price' => $this->price,
             'project' => new ProjectResource($this->whenLoaded('project')),
+            'created_at' => $this->created_at,
+            'created_at_formatted' => $this->created_at->format('d.m.Y'),
         ];
     }
 }
