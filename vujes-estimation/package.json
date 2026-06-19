@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "webpack --config webpack.config.cjs",
         "watch": "webpack --watch --config webpack.config.cjs",
-        "prod": "webpack --mode production --config webpack.config.cjs"
+        "prod": "webpack --mode production --config webpack.config.cjs",
+        "format": "prettier --write \"resources/js/**/*.{js,vue}\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
@@ -13,6 +14,7 @@
         "css-loader": "^7.1.4",
         "laravel-mix": "^6.0.49",
         "mdi": "^2.2.43",
+        "prettier": "^3.8.4",
         "tailwindcss": "^4.0.0",
         "vue": "^3.5.35",
         "vue-loader": "^17.4.2",
