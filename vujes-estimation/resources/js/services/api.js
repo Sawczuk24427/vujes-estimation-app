@@ -3,6 +3,11 @@ const defaultHeaders = {
   Accept: 'application/json',
 };
 
+function getXsrfToken() {
+  const match = document.cookie.match(new RegExp('(^| )XSRF-TOKEN=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
 async function request(url, originalMethod = 'GET', body = null) {
   const options = {
     method: originalMethod,
@@ -10,11 +15,11 @@ async function request(url, originalMethod = 'GET', body = null) {
     headers: { ...defaultHeaders },
   };
 
-  if (originalMethod === 'PUT' || originalMethod === 'DELETE') {
-    options.method = 'POST';
-    options.headers['X-HTTP-Method-Override'] = originalMethod;
-    if (!body) body = {};
-    body._method = originalMethod;
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+    const token = getXsrfToken();
+    if (token) {
+      options.headers['X-XSRF-TOKEN'] = token;
+    }
   }
 
   if (body) {
