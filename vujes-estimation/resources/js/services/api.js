@@ -15,7 +15,7 @@ async function request(url, originalMethod = 'GET', body = null) {
     headers: { ...defaultHeaders },
   };
 
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(originalMethod.toUpperCase())) {
     const token = getXsrfToken();
     if (token) {
       options.headers['X-XSRF-TOKEN'] = token;
